@@ -2,25 +2,25 @@ public class Nodo {
     
     // atributos
 
-    private int dato;
+    private char dato;
     private Nodo ligaIzq, ligaDer;
 
     // constructor
 
-    public Nodo (int dato) {
+    public Nodo (char dato) {
         this.dato = dato;
 
         this.ligaIzq = null;
         this.ligaDer = null;
     }
-    
+
     // Getters y Setters
 
-    public int getDato() {
+    public char getDato() {
         return dato;
     }
 
-    public void setDato(int dato) {
+    public void setDato(char dato) {
         this.dato = dato;
     }
 
