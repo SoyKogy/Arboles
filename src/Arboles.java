@@ -7,8 +7,8 @@ public class Arboles {
         char[] cadena;
 
         do {
-            vector = JOptionPane.showInputDialog("Ingrese una cadena de letras para crear el arbol binario:");
-
+            vector = (JOptionPane.showInputDialog("Ingrese una cadena de letras para crear el arbol binario:")).toUpperCase();
+             // paso todo a mayusculas
             cadena = vector.toCharArray();
             
             for (int i = 0; i < cadena.length; i++) {
@@ -181,7 +181,12 @@ public class Arboles {
             /* 0 = melo para insertar
                1 = mas de 1 caracter/nodo ya existente
              */
-            String nuevoNodo = JOptionPane.showInputDialog("Ingrese un carácter que no se encuentre en el árbol.\n\nNo ingrese espacios ni puntos.");
+            StringBuilder cadena = new StringBuilder();
+            recorrerPreorden(raiz, cadena);
+
+            String nuevoNodo = JOptionPane.showInputDialog("Arbol actual:\n"+cadena+"\nIngrese un carácter que no se encuentre en el árbol.\n\nNo ingrese espacios ni puntos.");
+            nuevoNodo.toUpperCase();
+
             if (nuevoNodo.length() > 1) {
                 JOptionPane.showMessageDialog(null, "Error: Solo puede ingresar 1 carácter.");
                 encontrado = 1;
@@ -189,9 +194,7 @@ public class Arboles {
 
             if (encontrado == 0) {
                 char caracter = nuevoNodo.charAt(0);
-                StringBuilder cadena = new StringBuilder();
-
-                recorrerPreorden(raiz, cadena);
+                
 
                 for (int i = 0; i < cadena.length() && encontrado == 0; i++) {
                     if (cadena.charAt(i) == caracter) {
