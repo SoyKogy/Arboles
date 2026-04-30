@@ -16,8 +16,8 @@ public class Arboles {
                     if (i == j) {
                         j++; // paraq ue no se compare consigo mismo
                     }
-                    
-                    if (cadena[i] == cadena[j]) {
+
+                    if (j < cadena.length && cadena[i] == cadena[j]) {
                         JOptionPane.showMessageDialog(null, "El carácter \"" + cadena[i] + "\" se repite en la cadena.\nIntente de nuevo.");
                         vector = "";
 
@@ -32,6 +32,55 @@ public class Arboles {
         Nodo raiz = new Nodo(cadena[0]);
         crearArbol(raiz, cadena);
 
+        
+        
+        
+        int opcion = 0;
+        do {
+            opcion = Menu();
+            switch (opcion) {
+                case 1:
+                    StringBuilder inorden = new StringBuilder();
+                    recorrerInorden(raiz, inorden);
+                    JOptionPane.showMessageDialog(null, "Recorrido inorden:\n" + inorden);
+                    break;
+                case 2:
+                    StringBuilder preorden = new StringBuilder();
+                    recorrerPreorden(raiz, preorden);
+                    JOptionPane.showMessageDialog(null, "Recorrido inorden:\n" + preorden);
+                    break;
+                case 3:
+                    StringBuilder posorden = new StringBuilder();
+                    recorrerPosorden(raiz, posorden);
+                    JOptionPane.showMessageDialog(null, "Recorrido inorden:\n" + posorden);
+                    break;
+                case 4:
+                    insertarNodoDesdeMenu(raiz);
+                    break;
+                case 5:
+                    mostrarArbol(raiz);
+                    break;
+                case 0:
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(null, "Opcion invalida.");
+                    break;
+            }
+        } while (opcion != 0);
+    }
+
+    public static int Menu() {
+
+        return Integer.parseInt(JOptionPane.showInputDialog(
+            "\n ===== Menu Principal :) ====="
+                + "\n1. Mostrar recorrido inorden"
+                + "\n2. Mostrar recorrido preorden"
+                + "\n3. Mostrar recorrido posorden"
+                + "\n4. Insertar nodo" // para esto recordar hacer el input tipo "arbol actual: DFESMG. inserte un nodo distinto a los ya existentes"
+                + "\n5. Mostrar arbol"
+                + "\n\n0. Salir"
+                + "\nSeleccione una opcion"
+        ));
     }
 
     public static void crearArbol(Nodo raiz, char[] cadena) {
@@ -67,5 +116,68 @@ public class Arboles {
                 insertarNodo(x.getLigaIzq(), nodo);
             }
         }
+    }
+
+    public static void recorrerInorden(Nodo raiz, StringBuilder inorden) {
+        Nodo x = raiz;
+
+        // inorden izquierda -> raíz -> derecha
+        // arbol de prueba: HCAPMFOLEN
+
+        // busqueda en izquierda
+        if (x.getLigaIzq() != null) {
+            recorrerInorden(x.getLigaIzq(), inorden);
+        }
+        
+        inorden.append(x.getDato() + " ");
+        // se guarda el dato del nodo actual ya que:
+        /*   - es el ultimo a la izquierda en esa rama
+             - es el nodo raiz del anterior nodo a la izquierda
+             - es un nodo derecha sin hijo izquierdo
+         */
+
+        // busqueda en derecha 
+        if (x.getLigaDer() != null) {
+            recorrerInorden(x.getLigaDer(), inorden); // si hay a la derecha, se entra en esa rama
+        }
+    }
+
+    public static void recorrerPreorden(Nodo raiz, StringBuilder preorden) {
+        
+        Nodo x = raiz;
+
+        // preorden:   raíz -> izquierda -> derecha
+        preorden.append(x.getDato() + " ");
+
+        if (x.getLigaIzq() != null) {
+            recorrerPreorden(x.getLigaIzq(), preorden);
+        }
+        if (x.getLigaDer() != null) {
+            recorrerPreorden(x.getLigaDer(), preorden);
+        }
+
+    }
+
+    public static void recorrerPosorden(Nodo raiz, StringBuilder posorden) {
+        Nodo x = raiz;
+
+        // preorden:   raíz -> izquierda -> derecha
+
+        if (x.getLigaIzq() != null) {
+            recorrerPreorden(x.getLigaIzq(), posorden);
+        }
+        if (x.getLigaDer() != null) {
+            recorrerPreorden(x.getLigaDer(), posorden);
+        }
+
+        posorden.append(x.getDato() + " ");
+    }
+
+    public static void insertarNodoDesdeMenu(Nodo raiz) {
+        // TODO: pedir el dato por menu, validarlo e insertarlo en el arbol
+    }
+
+    public static void mostrarArbol(Nodo raiz) {
+        // TODO: mostrar el arbol con el formato que decidas usar
     }
 }
