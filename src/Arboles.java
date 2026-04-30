@@ -184,8 +184,7 @@ public class Arboles {
             StringBuilder cadena = new StringBuilder();
             recorrerPreorden(raiz, cadena);
 
-            String nuevoNodo = JOptionPane.showInputDialog("Arbol actual:\n"+cadena+"\nIngrese un carácter que no se encuentre en el árbol.\n\nNo ingrese espacios ni puntos.");
-            nuevoNodo.toUpperCase();
+            String nuevoNodo = (JOptionPane.showInputDialog("Arbol actual (preorden):\n"+cadena+"\nIngrese un carácter que no se encuentre en el árbol.\n\nNo ingrese espacios ni puntos.")).toUpperCase();
 
             if (nuevoNodo.length() > 1) {
                 JOptionPane.showMessageDialog(null, "Error: Solo puede ingresar 1 carácter.");
