@@ -174,7 +174,46 @@ public class Arboles {
     }
 
     public static void insertarNodoDesdeMenu(Nodo raiz) {
-        // TODO: pedir el dato por menu, validarlo e insertarlo en el arbol
+        int encontrado;
+        do {
+            encontrado = 0;
+            // valores para encontrado:
+            /* 0 = melo para insertar
+               1 = mas de 1 caracter/nodo ya existente
+             */
+            String nuevoNodo = JOptionPane.showInputDialog("Ingrese un carácter que no se encuentre en el árbol.\n\nNo ingrese espacios ni puntos.");
+            if (nuevoNodo.length() > 1) {
+                JOptionPane.showMessageDialog(null, "Error: Solo puede ingresar 1 carácter.");
+                encontrado = 1;
+            }
+
+            if (encontrado == 0) {
+                char caracter = nuevoNodo.charAt(0);
+                StringBuilder cadena = new StringBuilder();
+
+                recorrerPreorden(raiz, cadena);
+
+                for (int i = 0; i < cadena.length() && encontrado == 0; i++) {
+                    if (cadena.charAt(i) == caracter) {
+                        JOptionPane.showMessageDialog(null, "Error: \""+caracter+"\" ya se encuentra en el árbol.");
+                        encontrado = 1;
+                    }
+                }
+
+                if (encontrado == 0) {
+                    Nodo nodo = new Nodo(caracter);
+                    insertarNodo(raiz, nodo);
+
+                    StringBuilder nuevaCadena = new StringBuilder();
+                    recorrerPreorden(raiz, nuevaCadena);
+                    JOptionPane.showMessageDialog(null, nuevaCadena);
+                    
+                }
+            }
+
+
+        } while (encontrado == 1);
+        
     }
 
     public static void mostrarArbol(Nodo raiz) {
