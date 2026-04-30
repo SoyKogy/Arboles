@@ -164,10 +164,10 @@ public class Arboles {
         // preorden:   raíz -> izquierda -> derecha
 
         if (x.getLigaIzq() != null) {
-            recorrerPreorden(x.getLigaIzq(), posorden);
+            recorrerPosorden(x.getLigaIzq(), posorden);
         }
         if (x.getLigaDer() != null) {
-            recorrerPreorden(x.getLigaDer(), posorden);
+            recorrerPosorden(x.getLigaDer(), posorden);
         }
 
         posorden.append(x.getDato() + " ");
