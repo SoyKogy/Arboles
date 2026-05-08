@@ -47,12 +47,12 @@ public class Arboles {
                 case 2:
                     StringBuilder preorden = new StringBuilder();
                     recorrerPreorden(raiz, preorden);
-                    JOptionPane.showMessageDialog(null, "Recorrido inorden:\n" + preorden);
+                    JOptionPane.showMessageDialog(null, "Recorrido preorden:\n" + preorden);
                     break;
                 case 3:
                     StringBuilder posorden = new StringBuilder();
                     recorrerPosorden(raiz, posorden);
-                    JOptionPane.showMessageDialog(null, "Recorrido inorden:\n" + posorden);
+                    JOptionPane.showMessageDialog(null, "Recorrido posorden:\n" + posorden);
                     break;
                 case 4:
                     insertarNodoDesdeMenu(raiz);
@@ -121,7 +121,7 @@ public class Arboles {
     public static void recorrerInorden(Nodo raiz, StringBuilder inorden) {
         Nodo x = raiz;
 
-        // inorden izquierda -> raíz -> derecha
+        // inorden: izquierda -> raíz -> derecha
         // arbol de prueba: HCAPMFOLEN
 
         // busqueda en izquierda
@@ -161,7 +161,7 @@ public class Arboles {
     public static void recorrerPosorden(Nodo raiz, StringBuilder posorden) {
         Nodo x = raiz;
 
-        // preorden:   raíz -> izquierda -> derecha
+        // posorden:   izquierda -> derecha -> raiz
 
         if (x.getLigaIzq() != null) {
             recorrerPosorden(x.getLigaIzq(), posorden);
