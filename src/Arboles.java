@@ -3,37 +3,10 @@ import javax.swing.JOptionPane;
 public class Arboles {
     public static void main(String[] args) throws Exception {
         
-        String vector = "";
-        char[] cadena;
+        char[] cadena = obtenerCadena();
 
-        do {
-            vector = (JOptionPane.showInputDialog("Ingrese una cadena de letras para crear el arbol binario:")).toUpperCase();
-             // paso todo a mayusculas
-            cadena = vector.toCharArray();
-            
-            for (int i = 0; i < cadena.length; i++) {
-                for (int j = 0; j < cadena.length; j++) {
-                    if (i == j) {
-                        j++; // paraq ue no se compare consigo mismo
-                    }
-
-                    if (j < cadena.length && cadena[i] == cadena[j]) {
-                        JOptionPane.showMessageDialog(null, "El carácter \"" + cadena[i] + "\" se repite en la cadena.\nIntente de nuevo.");
-                        vector = "";
-
-                        i = cadena.length; // Salir del bucle externo
-                        j = cadena.length; // Salir del bucle interno
-                    }
-                }
-            }
-
-        } while (vector == null || vector == "" || vector.isBlank()); 
-        
-        Nodo raiz = new Nodo(cadena[0]);
+        Nodo raiz = new Nodo(cadena[0]); 
         crearArbol(raiz, cadena);
-
-        
-        
         
         int opcion = 0;
         do {
@@ -60,6 +33,16 @@ public class Arboles {
                 case 5:
                     mostrarArbol(raiz);
                     break;
+                case 6:
+                    int[] hojas = new int[1]; // convierto el int en un objeto para poder arrastrarlo entre recursiones
+                    contarHojas(raiz, hojas);
+                    JOptionPane.showMessageDialog(null, "Cantidad de hojas:\n\n" + hojas);
+                    break;
+                case 7:
+                    int[] padres = new int[1];
+                    contarPadres(raiz, padres);
+                    JOptionPane.showMessageDialog(null, "Cantidad de padres:\n\n" + padres);
+                    break;
                 case 0:
                     break;
                 default:
@@ -76,11 +59,53 @@ public class Arboles {
                 + "\n1. Mostrar recorrido inorden"
                 + "\n2. Mostrar recorrido preorden"
                 + "\n3. Mostrar recorrido posorden"
-                + "\n4. Insertar nodo" // para esto recordar hacer el input tipo "arbol actual: DFESMG. inserte un nodo distinto a los ya existentes"
-                + "\n5. Mostrar arbol"
+
+                + "\n\n4. Insertar nodo" // para esto recordar hacer el input tipo "arbol actual: DFESMG. inserte un nodo distinto a los ya existentes"
+                + "\n5. Eliminar nodo" // para esto recordar hacer el input tipo "arbol actual: DFESMG. inserte un nodo a eliminar que se encuentre en el arbol"
+                + "\n6. Contar las hojas"
+                + "\n7. Contar los padres"
+                + "\n8. Mostrar arbol"
+
+                + "\n\n9. Mostrar el hermano de un dato"
+                + "\n10. Mostrar el nivel de un dato"
+                + "\n11. Mostrar la altura de un dato"
+                + "\n12. Mostrar los primos hermanos de un dato"
+                + "\n13. Mostrar los ancestros de un dato"
+                + "\n14. Balancear arbol"
                 + "\n\n0. Salir"
                 + "\nSeleccione una opcion"
         ));
+    }
+
+    public static char[] obtenerCadena() {
+
+        String vector = "";
+        char[] cadena;
+
+        do {
+            vector = (JOptionPane.showInputDialog("Ingrese una cadena de letras para crear el arbol binario:")).toUpperCase();
+             // paso todo a mayusculas
+            cadena = vector.toCharArray();
+            
+            for (int i = 0; i < cadena.length; i++) {
+                for (int j = 0; j < cadena.length; j++) {
+                    if (i == j) {
+                        j++; // paraq ue no se compare consigo mismo
+                    }
+
+                    if (j < cadena.length && cadena[i] == cadena[j]) {
+                        JOptionPane.showMessageDialog(null, "El carácter \"" + cadena[i] + "\" se repite en la cadena.\nIntente de nuevo.");
+                        vector = "";
+
+                        i = cadena.length; // Salir del bucle externo
+                        j = cadena.length; // Salir del bucle interno
+                    }
+                }
+            }
+
+        } while (vector == null || vector == "" || vector.isBlank()); 
+
+        return cadena;
     }
 
     public static void crearArbol(Nodo raiz, char[] cadena) {
@@ -118,7 +143,7 @@ public class Arboles {
         }
     }
 
-    public static void recorrerInorden(Nodo raiz, StringBuilder inorden) {
+    private static void recorrerInorden(Nodo raiz, StringBuilder inorden) {
         Nodo x = raiz;
 
         // inorden: izquierda -> raíz -> derecha
@@ -142,7 +167,7 @@ public class Arboles {
         }
     }
 
-    public static void recorrerPreorden(Nodo raiz, StringBuilder preorden) {
+    private static void recorrerPreorden(Nodo raiz, StringBuilder preorden) {
         
         Nodo x = raiz;
 
@@ -158,7 +183,7 @@ public class Arboles {
 
     }
 
-    public static void recorrerPosorden(Nodo raiz, StringBuilder posorden) {
+    private static void recorrerPosorden(Nodo raiz, StringBuilder posorden) {
         Nodo x = raiz;
 
         // posorden:   izquierda -> derecha -> raiz
@@ -221,4 +246,80 @@ public class Arboles {
     public static void mostrarArbol(Nodo raiz) {
         // TODO: mostrar el arbol con el formato que decidas usar
     }
-}
+
+    private static void contarHojas(Nodo raiz, int[] hojas) {
+
+        Nodo x = raiz;
+        // recorrido 
+        if (x.getLigaIzq() == null && x.getLigaDer() == null) {
+            hojas[0]++; // si el nodo no tiene hijos, es una hoja, entonces se suma 1 a la cantidad de hojas
+        } else {
+            if (x.getLigaIzq() != null) {
+                contarHojas(x.getLigaIzq(), hojas);
+            }
+            if (x.getLigaDer() != null) {
+                contarHojas(x.getLigaDer(), hojas);
+            }
+        }
+        
+    }
+
+    private static void contarPadres(Nodo raiz, int[] padres) {
+
+        Nodo x = raiz;
+        // recorrido  
+        if (x.getLigaIzq() != null || x.getLigaDer() != null) {
+            padres[0]++; // si el nodo tiene al menos un hijo, es un padre, entonces se suma 1 a la cantidad de padres
+        }
+        
+        if (x.getLigaIzq() != null) {
+            contarPadres(x.getLigaIzq(), padres);
+        }
+        if (x.getLigaDer() != null) {
+            contarPadres(x.getLigaDer(), padres);
+        }
+    }
+
+
+
+
+
+/*
+    public void Construir(char Vc[]) {
+
+        int i = 0;
+        while (i < Vc.length) {
+
+            if (true) {
+
+            }
+
+            AVL();
+
+            i++;
+        }
+    }
+    
+    private void AVL() {
+        
+        // factor de balance
+        FactorBalance();
+
+        int R = ValidarRotacion();
+
+
+        switch (R) {
+            case 1:     // R.D
+                
+                break;
+            case 2:     // R.I
+                break;
+            case 3:     // R.D.D
+                break;
+            case 4:     // R.D.I
+                break;
+        }
+    }
+
+ */
+    }
