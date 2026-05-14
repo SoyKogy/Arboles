@@ -31,7 +31,7 @@ public class Arboles {
                     insertarNodoDesdeMenu(raiz);
                     break;
                 case 5:
-                    mostrarArbol(raiz);
+                    eliminarNodoDesdeMenu(raiz);
                     break;
                 case 6:
                     int[] hojas = new int[1]; // convierto el int en un objeto para poder arrastrarlo entre recursiones
@@ -243,6 +243,13 @@ public class Arboles {
         
     }
 
+    public static void eliminarNodoDesdeMenu(Nodo raiz) {
+        
+        
+    
+    }
+
+
     public static void mostrarArbol(Nodo raiz) {
         // TODO: mostrar el arbol con el formato que decidas usar
     }
@@ -271,7 +278,7 @@ public class Arboles {
         if (x.getLigaIzq() != null || x.getLigaDer() != null) {
             padres[0]++; // si el nodo tiene al menos un hijo, es un padre, entonces se suma 1 a la cantidad de padres
         }
-        
+
         if (x.getLigaIzq() != null) {
             contarPadres(x.getLigaIzq(), padres);
         }
