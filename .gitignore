@@ -26,3 +26,4 @@ replay_pid*
 .vscode/
 bin/
 lib/
+avl_pages/

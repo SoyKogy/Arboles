@@ -3,16 +3,17 @@ import javax.swing.JOptionPane;
 public class Arboles {
     public static void main(String[] args) throws Exception {
         
-        char[] cadena = obtenerCadena();
+        char[] cadena = obtenerCadena(); // aquí se captura la cadena base con la que nacerá el árbol
 
-        Nodo raiz = new Nodo(cadena[0]); 
-        crearArbol(raiz, cadena);
+        Nodo raiz = new Nodo(cadena[0]); // el primer carácter siempre se toma como raíz inicial
+        crearArbol(raiz, cadena); // los demás caracteres se insertan respetando el orden de un ABB
         
         int opcion = 0;
         do {
-            opcion = Menu();
+            opcion = Menu(); // se vuelve a pedir opción hasta que el usuario decida salir
             switch (opcion) {
                 case 1:
+                    // StringBuilder se usa para ir armando el recorrido sin crear muchos String intermedios
                     StringBuilder inorden = new StringBuilder();
                     recorrerInorden(raiz, inorden);
                     JOptionPane.showMessageDialog(null, "Recorrido inorden:\n" + inorden);
@@ -31,14 +32,16 @@ public class Arboles {
                     insertarNodoDesdeMenu(raiz);
                     break;
                 case 5:
+                    // ojo: eliminar puede cambiar la raíz, por eso aquí sí se reasigna
                     raiz = eliminarNodoDesdeMenu(raiz);
                     break;
                 case 6:
-                    int[] hojas = new int[1]; // convierto el int en un objeto para poder arrastrarlo entre recursiones
+                    int[] hojas = new int[1]; // convierto el int en un "contenedor" para poder compartirlo entre llamadas recursivas
                     contarHojas(raiz, hojas);
                     JOptionPane.showMessageDialog(null, "Cantidad de hojas:\n\n" + hojas[0]);
                     break;
                 case 7:
+                    // misma idea que en hojas: el arreglo permite modificar el valor desde varios niveles de recursión
                     int[] padres = new int[1];
                     contarPadres(raiz, padres);
                     JOptionPane.showMessageDialog(null, "Cantidad de padres:\n\n" + padres[0]);
@@ -58,6 +61,12 @@ public class Arboles {
                 case 13:
                     mostrarAncestrosDeDato(raiz);
                     break;
+                case 14:
+                    // TODO
+                    break;
+                case 15:
+                    mostrarSiArbolPerfecto(raiz);
+                    break;
                 case 0:
                     break;
                 default:
@@ -69,24 +78,27 @@ public class Arboles {
 
     public static int Menu() {
 
+        // se retorna directamente el parseo porque el menú solo necesita entregar la opción elegida
         return Integer.parseInt(JOptionPane.showInputDialog(
             "\n ===== Menu Principal :) ====="
                 + "\n1. Mostrar recorrido inorden"
                 + "\n2. Mostrar recorrido preorden"
                 + "\n3. Mostrar recorrido posorden"
 
-                + "\n\n4. Insertar nodo" // para esto recordar hacer el input tipo "arbol actual: DFESMG. inserte un nodo distinto a los ya existentes"
-                + "\n5. Eliminar nodo" // para esto recordar hacer el input tipo "arbol actual: DFESMG. inserte un nodo a eliminar que se encuentre en el arbol"
+                + "\n\n4. Insertar nodo" // esta opción luego muestra el árbol actual para que el usuario no repita letras
+                + "\n5. Eliminar nodo" // aquí también se muestra el árbol para que el usuario elimine un dato existente
                 + "\n6. Contar las hojas"
                 + "\n7. Contar los padres"
-                + "\n8. Mostrar arbol"
+                + "\n8. Mostrar arbol" // aparece en el menú, pero su lógica todavía está pendiente más abajo
 
                 + "\n\n9. Mostrar el hermano de un dato"
                 + "\n10. Mostrar el nivel de un dato"
                 + "\n11. Mostrar la altura de un dato"
                 + "\n12. Mostrar los primos hermanos de un dato"
                 + "\n13. Mostrar los ancestros de un dato"
-                + "\n14. Balancear arbol"
+                + "\n\n14. Balancear arbol (AVL)" // también figura como futura funcionalidad, pero aún no tiene case implementado
+                
+                + "\n\n15. Mostrar si el arbol es perfecto"
                 + "\n\n0. Salir"
                 + "\nSeleccione una opcion"
         ));
@@ -99,38 +111,65 @@ public class Arboles {
 
         do {
             vector = (JOptionPane.showInputDialog("Ingrese una cadena de letras para crear el arbol binario:")).toUpperCase();
-             // paso todo a mayusculas
+            // paso todo a mayúsculas para que "a" y "A" no cuenten como dos datos distintos
             cadena = vector.toCharArray();
             
+            // este doble for valida que no haya caracteres repetidos en la cadena inicial
             for (int i = 0; i < cadena.length; i++) {
                 for (int j = 0; j < cadena.length; j++) {
                     if (i == j) {
-                        j++; // paraq ue no se compare consigo mismo
+                        j++; // para que no se compare consigo mismo y se detecte falso "duplicado"
                     }
 
                     if (j < cadena.length && cadena[i] == cadena[j]) {
+                        // si encuentra repetido, se invalida toda la entrada y se vuelve a pedir completa
                         JOptionPane.showMessageDialog(null, "El carácter \"" + cadena[i] + "\" se repite en la cadena.\nIntente de nuevo.");
                         vector = "";
 
-                        i = cadena.length; // Salir del bucle externo
-                        j = cadena.length; // Salir del bucle interno
+                        i = cadena.length; // salir del bucle externo forzando su condición de corte
+                        j = cadena.length; // salir del bucle interno por la misma razón
                     }
                 }
             }
 
-        } while (vector == null || vector == "" || vector.isBlank()); 
+        } while (vector == null || vector == "" || vector.isBlank()); // no se aceptan cadenas vacías ni solo espacios
 
         return cadena;
     }
 
+    public static String obtenerCaracter(String mensaje) {
+
+        String caracter = "";
+
+        do {
+            caracter = JOptionPane.showInputDialog(mensaje);
+
+            if (caracter == null) {
+                caracter = ""; // si el usuario cancela, se trata como entrada inválida y se vuelve a pedir
+            } else {
+                caracter = caracter.toUpperCase(); // misma normalización que en obtenerCadena()
+            }
+
+            if (!caracter.isBlank() && caracter.length() > 1) {
+                // primero se revisa que no esté en blanco; así evitamos dar este error cuando el usuario solo deja vacío
+                JOptionPane.showMessageDialog(null, "Error: Solo puede ingresar 1 carácter.");
+                caracter = "";
+            }
+
+        } while (caracter.isBlank());
+
+        return caracter;
+    }
+
     public static void crearArbol(Nodo raiz, char[] cadena) {
 
-        Nodo x = raiz;
+        Nodo x = raiz; // referencia auxiliar; la raíz real sigue siendo la misma
 
+        // se empieza desde 1 porque cadena[0] ya fue usada para construir la raíz en main()
         for (int i = 1; i < cadena.length; i++) {
             Nodo nuevoNodo = new Nodo(cadena[i]);
 
-            insertarNodo(x, nuevoNodo);
+            insertarNodo(x, nuevoNodo); // cada carácter se acomoda según si es menor o mayor al dato actual
         }
 
     }
@@ -138,20 +177,21 @@ public class Arboles {
     public static void insertarNodo(Nodo raiz, Nodo nodo) {
         Nodo x = raiz;
 
-        //recorrido dentro del arbol actual, para saber si insertar a la izquierda o a la derecha
+        // recorrido dentro del árbol actual para saber si insertar a la izquierda o a la derecha
 
-        // IMPORTANTE: insertarNodo ASUME que 'dato' de 'raiz' y 'nodo' son distintos
+        // IMPORTANTE: insertarNodo asume que 'dato' de 'raiz' y 'nodo' son distintos;
+        // si se intentara insertar un repetido, no entra a ningún bloque y simplemente no se insertaría
         if (nodo.getDato() > x.getDato()) {
             if (x.getLigaDer() == null) {
 
-                x.setLigaDer(nodo); // si x apunta a null a la derecha, se guarda el nodo ahí
+                x.setLigaDer(nodo); // si a la derecha hay espacio, ese será el lugar final del nuevo nodo
             } else {
-                insertarNodo(x.getLigaDer(), nodo);
+                insertarNodo(x.getLigaDer(), nodo); // si no hay espacio, se sigue bajando por ese subárbol
             }
         } else if (nodo.getDato() < x.getDato()) {
             if (x.getLigaIzq() == null) {
 
-                x.setLigaIzq(nodo);
+                x.setLigaIzq(nodo); // mismo criterio, pero ahora hacia el lado izquierdo
             } else {
                 insertarNodo(x.getLigaIzq(), nodo);
             }
@@ -162,27 +202,31 @@ public class Arboles {
         Nodo x = raiz;
 
         if (x == null) { 
-            return null;
+            return null; // caso base: se llegó a una rama vacía y no hay nada por borrar
         }
 
         if (dato < x.getDato()) {
+            // al reasignar la liga, se conserva cualquier cambio que ocurra más abajo en la recursión
             x.setLigaIzq(eliminarNodo(x.getLigaIzq(), dato));
         } else if (dato > x.getDato()) {
             x.setLigaDer(eliminarNodo(x.getLigaDer(), dato));
         } else {
+            // si entró aquí, ya encontramos el nodo que sí coincide con el dato pedido
             if (x.getLigaIzq() == null && x.getLigaDer() == null) {
-                return null;
+                return null; // caso 1: era hoja, así que simplemente desaparece
             }
             if (x.getLigaIzq() == null) {
-                return x.getLigaDer();
+                return x.getLigaDer(); // caso 2: solo tiene hijo derecho, ese hijo sube a su lugar
             }
             if (x.getLigaDer() == null) {
-                return x.getLigaIzq();
+                return x.getLigaIzq(); // caso 3: solo tiene hijo izquierdo
             }
 
+            // caso 4: tiene dos hijos.
+            // se toma el menor del subárbol derecho (sucesor inorden) para no romper la propiedad del ABB
             Nodo sucesor = obtenerMenor(x.getLigaDer());
-            x.setDato(sucesor.getDato());
-            x.setLigaDer(eliminarNodo(x.getLigaDer(), sucesor.getDato()));
+            x.setDato(sucesor.getDato()); // se copia solo el dato; no se mueve el nodo completo
+            x.setLigaDer(eliminarNodo(x.getLigaDer(), sucesor.getDato())); // luego se elimina el duplicado que quedó en la derecha
         }
 
         return x;
@@ -192,9 +236,9 @@ public class Arboles {
         Nodo x = raiz;
 
         // inorden: izquierda -> raíz -> derecha
-        // arbol de prueba: HCAPMFOLEN
+        // por eso en un ABB este recorrido entrega los datos ordenados de menor a mayor
 
-        // busqueda en izquierda
+        // búsqueda en izquierda: siempre se intenta llegar al dato más pequeño disponible primero
         if (x.getLigaIzq() != null) {
             recorrerInorden(x.getLigaIzq(), inorden);
         }
@@ -206,7 +250,7 @@ public class Arboles {
              - es un nodo derecha sin hijo izquierdo
          */
 
-        // busqueda en derecha 
+        // búsqueda en derecha: después de procesar la raíz actual, se continúa con los mayores
         if (x.getLigaDer() != null) {
             recorrerInorden(x.getLigaDer(), inorden); // si hay a la derecha, se entra en esa rama
         }
@@ -217,7 +261,7 @@ public class Arboles {
         Nodo x = raiz;
 
         // preorden:   raíz -> izquierda -> derecha
-        preorden.append(x.getDato() + " ");
+        preorden.append(x.getDato() + " "); // aquí la raíz se guarda de primero, antes de bajar
 
         if (x.getLigaIzq() != null) {
             recorrerPreorden(x.getLigaIzq(), preorden);
@@ -232,6 +276,7 @@ public class Arboles {
         Nodo x = raiz;
 
         // posorden:   izquierda -> derecha -> raiz
+        // este recorrido suele ser útil cuando se quiere "cerrar" un subárbol antes de procesar su raíz
 
         if (x.getLigaIzq() != null) {
             recorrerPosorden(x.getLigaIzq(), posorden);
@@ -240,7 +285,7 @@ public class Arboles {
             recorrerPosorden(x.getLigaDer(), posorden);
         }
 
-        posorden.append(x.getDato() + " ");
+        posorden.append(x.getDato() + " "); // la raíz queda de última dentro de su propio subárbol
     }
 
     public static void insertarNodoDesdeMenu(Nodo raiz) {
@@ -252,7 +297,7 @@ public class Arboles {
                1 = mas de 1 caracter/nodo ya existente
              */
             StringBuilder cadena = new StringBuilder();
-            recorrerPreorden(raiz, cadena);
+            recorrerPreorden(raiz, cadena); // se usa preorden solo para mostrar el estado actual del árbol al usuario
 
             String nuevoNodo = (JOptionPane.showInputDialog("Arbol actual (preorden):\n"+cadena+"\nIngrese un carácter que no se encuentre en el árbol.\n\nNo ingrese espacios ni puntos.")).toUpperCase();
 
@@ -264,7 +309,7 @@ public class Arboles {
             if (encontrado == 0) {
                 char caracter = nuevoNodo.charAt(0);
                 
-
+                // se revisa sobre la cadena mostrada porque allí ya están listados todos los nodos del árbol actual
                 for (int i = 0; i < cadena.length() && encontrado == 0; i++) {
                     if (cadena.charAt(i) == caracter) {
                         JOptionPane.showMessageDialog(null, "Error: \""+caracter+"\" ya se encuentra en el árbol.");
@@ -274,11 +319,11 @@ public class Arboles {
 
                 if (encontrado == 0) {
                     Nodo nodo = new Nodo(caracter);
-                    insertarNodo(raiz, nodo);
+                    insertarNodo(raiz, nodo); // ya validado que no existe, se puede insertar sin romper la suposición de insertarNodo()
 
                     StringBuilder nuevaCadena = new StringBuilder();
                     recorrerPreorden(raiz, nuevaCadena);
-                    JOptionPane.showMessageDialog(null, nuevaCadena);
+                    JOptionPane.showMessageDialog(null, nuevaCadena); // se muestra el árbol actualizado para confirmar el cambio
                     
                 }
             }
@@ -300,29 +345,27 @@ public class Arboles {
             StringBuilder cadena = new StringBuilder();
             recorrerPreorden(raiz, cadena);
 
-            char caracter = pedirCaracter(
+            String entrada = obtenerCaracter(
                 "Arbol actual (preorden):\n" + cadena
                 + "\nIngrese un carácter que se encuentre en el árbol.\n\nNo ingrese espacios ni puntos."
             );
 
-            if (caracter == '\0') {
-                encontrado = 0;
-            }
-
             if (encontrado == 1) {
+                char caracter = entrada.charAt(0);
                 if (buscarNodo(raiz, caracter) != null) {
-                    raiz = eliminarNodo(raiz, caracter);
+                    raiz = eliminarNodo(raiz, caracter); // se reasigna por si el nodo borrado era la raíz actual
 
                     StringBuilder nuevaCadena = new StringBuilder();
                     if (raiz != null) {
                         recorrerPreorden(raiz, nuevaCadena);
                         JOptionPane.showMessageDialog(null, nuevaCadena);
                     } else {
+                        // este mensaje aclara la duda típica de "¿se dañó?" cuando en realidad se borró el último nodo
                         JOptionPane.showMessageDialog(null, "El árbol quedó vacío.");
                     }
                     
                 } else {
-                    mostrarDatoNoEncontrado(caracter);
+                    JOptionPane.showMessageDialog(null, "Error: \"" + caracter + "\" no se encuentra en el árbol.");
                     encontrado = 0;
                 }
             }
@@ -336,13 +379,13 @@ public class Arboles {
 
 
     public static void mostrarArbol(Nodo raiz) {
-        // TODO: mostrar el arbol con el formato que decidas usar
+        // TODO: mostrar el árbol con una representación visual más clara que un simple recorrido lineal
     }
 
     private static void contarHojas(Nodo raiz, int[] hojas) {
 
         Nodo x = raiz;
-        // recorrido 
+        // recorrido completo del árbol: una hoja es un nodo sin hijo izquierdo ni derecho
         if (x.getLigaIzq() == null && x.getLigaDer() == null) {
             hojas[0]++; // si el nodo no tiene hijos, es una hoja, entonces se suma 1 a la cantidad de hojas
         } else {
@@ -359,7 +402,7 @@ public class Arboles {
     private static void contarPadres(Nodo raiz, int[] padres) {
 
         Nodo x = raiz;
-        // recorrido  
+        // recorrido completo: aquí "padre" significa cualquier nodo que tenga al menos un hijo
         if (x.getLigaIzq() != null || x.getLigaDer() != null) {
             padres[0]++; // si el nodo tiene al menos un hijo, es un padre, entonces se suma 1 a la cantidad de padres
         }
@@ -375,6 +418,7 @@ public class Arboles {
     private static Nodo obtenerMenor(Nodo raiz) {
         Nodo x = raiz;
 
+        // en un ABB, el menor de cualquier subárbol siempre está en la rama más a la izquierda
         while (x.getLigaIzq() != null) {
             x = x.getLigaIzq();
         }
@@ -386,15 +430,17 @@ public class Arboles {
         Nodo x = raiz;
 
         if (x == null) {
-            return null;
+            return null; // no se encontró en esta ruta
         }
         if (dato == x.getDato()) {
-            return x;
+            return x; // caso encontrado
         }
         if (dato < x.getDato()) {
+            // si el dato buscado es menor, no tiene sentido revisar la derecha en un ABB
             return buscarNodo(x.getLigaIzq(), dato);
         }
 
+        // y si es mayor, solo puede estar en la derecha
         return buscarNodo(x.getLigaDer(), dato);
     }
 
@@ -406,7 +452,7 @@ public class Arboles {
         }
         if ((x.getLigaIzq() != null && x.getLigaIzq().getDato() == dato)
             || (x.getLigaDer() != null && x.getLigaDer().getDato() == dato)) {
-            return x;
+            return x; // si uno de sus hijos coincide, entonces el actual es el padre buscado
         }
         if (dato < x.getDato()) {
             return buscarPadre(x.getLigaIzq(), dato);
@@ -419,10 +465,10 @@ public class Arboles {
         Nodo x = raiz;
 
         if (x == null) {
-            return -1;
+            return -1; // -1 significa "no encontrado", no un nivel válido
         }
         if (x.getDato() == dato) {
-            return nivelActual;
+            return nivelActual; // el nivel se va acumulando a medida que se baja desde la raíz
         }
         if (dato < x.getDato()) {
             return buscarNivel(x.getLigaIzq(), dato, nivelActual + 1);
@@ -435,165 +481,154 @@ public class Arboles {
         Nodo x = raiz;
 
         if (x == null) {
-            return -1;
+            return -1; // convención útil: una rama inexistente mide -1, así una hoja termina midiendo 0
         }
 
         int alturaIzq = calcularAltura(x.getLigaIzq());
         int alturaDer = calcularAltura(x.getLigaDer());
 
         if (alturaIzq > alturaDer) {
-            return alturaIzq + 1;
+            return alturaIzq + 1; // se suma 1 por el nodo actual
         }
 
         return alturaDer + 1;
     }
 
-    private static char pedirCaracter(String mensaje) {
-        String entrada = JOptionPane.showInputDialog(mensaje);
-
-        if (entrada == null) {
-            JOptionPane.showMessageDialog(null, "Operación cancelada.");
-            return '\0';
-        }
-
-        entrada = entrada.trim().toUpperCase();
-
-        if (entrada.length() != 1) {
-            JOptionPane.showMessageDialog(null, "Error: Solo puede ingresar 1 carácter.");
-            return '\0';
-        }
-
-        return entrada.charAt(0);
-    }
-
-    private static void mostrarDatoNoEncontrado(char dato) {
-        JOptionPane.showMessageDialog(null, "Error: \"" + dato + "\" no se encuentra en el árbol.");
-    }
-
     private static void mostrarHermanoDeDato(Nodo raiz) {
-        char dato = pedirCaracter("Ingrese el dato del que quiere ver el hermano:");
-
-        if (dato == '\0') {
-            return;
-        }
+        String entrada = obtenerCaracter("Ingrese el dato del que quiere ver el hermano:");
+        char dato = entrada.charAt(0);
+        int tienePadre = 1;
+        // valores para tienePadre:
+        /* 0 = el dato no tiene padre
+           1 = el dato sí tiene padre
+         */
 
         Nodo padre = buscarPadre(raiz, dato);
         if (padre == null) {
+            // esto pasa si el dato es la raíz o si ese nodo simplemente no tiene un hermano al otro lado
             JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene hermano.");
-            return;
+            tienePadre = 0;
         }
 
-        Nodo hermano = null;
-        if (padre.getLigaIzq() != null && padre.getLigaIzq().getDato() == dato) {
-            hermano = padre.getLigaDer();
-        } else if (padre.getLigaDer() != null && padre.getLigaDer().getDato() == dato) {
-            hermano = padre.getLigaIzq();
-        }
+        if (tienePadre == 1) {
+            Nodo hermano = null;
+            if (padre.getLigaIzq() != null && padre.getLigaIzq().getDato() == dato) {
+                hermano = padre.getLigaDer(); // si el dato está a la izquierda, su hermano sería el hijo derecho del mismo padre
+            } else if (padre.getLigaDer() != null && padre.getLigaDer().getDato() == dato) {
+                hermano = padre.getLigaIzq();
+            }
 
-        if (hermano == null) {
-            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene hermano.");
-        } else {
-            JOptionPane.showMessageDialog(null, "El hermano de \"" + dato + "\" es \"" + hermano.getDato() + "\".");
+            if (hermano == null) {
+                JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene hermano.");
+            } else {
+                JOptionPane.showMessageDialog(null, "El hermano de \"" + dato + "\" es \"" + hermano.getDato() + "\".");
+            }
         }
     }
 
     private static void mostrarNivelDeDato(Nodo raiz) {
-        char dato = pedirCaracter("Ingrese el dato del que quiere ver el nivel:");
+        String entrada = obtenerCaracter("Ingrese el dato del que quiere ver el nivel:");
+        char dato = entrada.charAt(0);
 
-        if (dato == '\0') {
-            return;
-        }
-
-        int nivel = buscarNivel(raiz, dato, 0);
+        int nivel = buscarNivel(raiz, dato, 0); // la raíz arranca en nivel 0
         if (nivel == -1) {
-            mostrarDatoNoEncontrado(dato);
+            JOptionPane.showMessageDialog(null, "Error: \"" + dato + "\" no se encuentra en el árbol.");
         } else {
             JOptionPane.showMessageDialog(null, "El nivel de \"" + dato + "\" es " + nivel + ".");
         }
     }
 
     private static void mostrarAlturaDeDato(Nodo raiz) {
-        char dato = pedirCaracter("Ingrese el dato del que quiere ver la altura:");
-
-        if (dato == '\0') {
-            return;
-        }
+        String entrada = obtenerCaracter("Ingrese el dato del que quiere ver la altura:");
+        char dato = entrada.charAt(0);
 
         Nodo nodo = buscarNodo(raiz, dato);
         if (nodo == null) {
-            mostrarDatoNoEncontrado(dato);
+            JOptionPane.showMessageDialog(null, "Error: \"" + dato + "\" no se encuentra en el árbol.");
         } else {
+            // se calcula la altura tomando ese nodo como nueva raíz del subárbol correspondiente
             JOptionPane.showMessageDialog(null, "La altura de \"" + dato + "\" es " + calcularAltura(nodo) + ".");
         }
     }
 
     private static void mostrarPrimosHermanosDeDato(Nodo raiz) {
-        char dato = pedirCaracter("Ingrese el dato del que quiere ver los primos hermanos:");
-
-        if (dato == '\0') {
-            return;
-        }
+        String entrada = obtenerCaracter("Ingrese el dato del que quiere ver los primos hermanos:");
+        char dato = entrada.charAt(0);
+        int puedeBuscarPrimos = 1;
+        // valores para puedeBuscarPrimos:
+        /* 0 = no se puede continuar la búsqueda de primos hermanos
+           1 = sí se puede continuar la búsqueda de primos hermanos
+         */
 
         Nodo nodo = buscarNodo(raiz, dato);
         Nodo padre = buscarPadre(raiz, dato);
-        Nodo abuelo = padre == null ? null : buscarPadre(raiz, padre.getDato());
+        Nodo abuelo = null;
+
+        if (padre != null) {
+            abuelo = buscarPadre(raiz, padre.getDato()); // si sé quién es el padre, busco quién es el padre de ese padre
+        }
 
         if (nodo == null) {
-            mostrarDatoNoEncontrado(dato);
-            return;
+            JOptionPane.showMessageDialog(null, "Error: \"" + dato + "\" no se encuentra en el árbol.");
+            puedeBuscarPrimos = 0;
         }
         if (padre == null || abuelo == null) {
             JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene primos hermanos.");
-            return;
+            puedeBuscarPrimos = 0;
         }
 
-        StringBuilder primos = new StringBuilder();
-        recolectarPrimosHermanos(abuelo, padre, primos);
+        if (puedeBuscarPrimos == 1) {
+            StringBuilder primos = new StringBuilder();
+            if (abuelo.getLigaIzq() != null && abuelo.getLigaIzq() != padre) {
+                // si el padre está al otro lado del abuelo, este subárbol sí puede contener primos hermanos
+                if (abuelo.getLigaIzq().getLigaIzq() != null) {
+                    primos.append(abuelo.getLigaIzq().getLigaIzq().getDato()).append(' ');
+                }
+                if (abuelo.getLigaIzq().getLigaDer() != null) {
+                    primos.append(abuelo.getLigaIzq().getLigaDer().getDato()).append(' ');
+                }
+            }
+            if (abuelo.getLigaDer() != null && abuelo.getLigaDer() != padre) {
+                if (abuelo.getLigaDer().getLigaIzq() != null) {
+                    primos.append(abuelo.getLigaDer().getLigaIzq().getDato()).append(' ');
+                }
+                if (abuelo.getLigaDer().getLigaDer() != null) {
+                    primos.append(abuelo.getLigaDer().getLigaDer().getDato()).append(' ');
+                }
+            }
 
-        if (primos.length() == 0) {
-            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene primos hermanos.");
-        } else {
-            JOptionPane.showMessageDialog(null, "Primos hermanos de \"" + dato + "\":\n" + primos);
-        }
-    }
-
-    private static void recolectarPrimosHermanos(Nodo abuelo, Nodo padre, StringBuilder primos) {
-        if (abuelo.getLigaIzq() != null && abuelo.getLigaIzq() != padre) {
-            agregarHijos(abuelo.getLigaIzq(), primos);
-        }
-        if (abuelo.getLigaDer() != null && abuelo.getLigaDer() != padre) {
-            agregarHijos(abuelo.getLigaDer(), primos);
-        }
-    }
-
-    private static void agregarHijos(Nodo raiz, StringBuilder datos) {
-        if (raiz.getLigaIzq() != null) {
-            datos.append(raiz.getLigaIzq().getDato()).append(' ');
-        }
-        if (raiz.getLigaDer() != null) {
-            datos.append(raiz.getLigaDer().getDato()).append(' ');
+            if (primos.length() == 0) {
+                JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene primos hermanos.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Primos hermanos de \"" + dato + "\":\n" + primos);
+            }
         }
     }
 
     private static void mostrarAncestrosDeDato(Nodo raiz) {
-        char dato = pedirCaracter("Ingrese el dato del que quiere ver los ancestros:");
-
-        if (dato == '\0') {
-            return;
-        }
+        String entrada = obtenerCaracter("Ingrese el dato del que quiere ver los ancestros:");
+        char dato = entrada.charAt(0);
+        int datoExiste = 1;
+        // valores para datoExiste:
+        /* 0 = el dato no existe en el árbol
+           1 = el dato sí existe en el árbol
+         */
 
         if (buscarNodo(raiz, dato) == null) {
-            mostrarDatoNoEncontrado(dato);
-            return;
+            JOptionPane.showMessageDialog(null, "Error: \"" + dato + "\" no se encuentra en el árbol.");
+            datoExiste = 0;
         }
 
-        StringBuilder ancestros = new StringBuilder();
-        construirAncestros(raiz, dato, ancestros);
+        if (datoExiste == 1) {
+            StringBuilder ancestros = new StringBuilder();
+            construirAncestros(raiz, dato, ancestros); // este método llena el StringBuilder mientras la recursión "desenrolla"
 
-        if (ancestros.length() == 0) {
-            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene ancestros.");
-        } else {
-            JOptionPane.showMessageDialog(null, "Ancestros de \"" + dato + "\":\n" + ancestros);
+            if (ancestros.length() == 0) {
+                // si no se agregó nada, el dato existe pero era la raíz, así que no tiene ancestros
+                JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene ancestros.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Ancestros de \"" + dato + "\":\n" + ancestros);
+            }
         }
     }
 
@@ -604,7 +639,7 @@ public class Arboles {
             return false;
         }
         if (x.getDato() == dato) {
-            return true;
+            return true; // al encontrar el dato, empieza el retorno hacia arriba marcando la ruta correcta
         }
 
         boolean encontrado;
@@ -616,9 +651,9 @@ public class Arboles {
 
         if (encontrado) {
             if (ancestros.length() == 0) {
-                ancestros.append(x.getDato());
+                ancestros.append(x.getDato()); // el primer ancestro agregado es el padre directo
             } else {
-                ancestros.insert(0, x.getDato() + " ");
+                ancestros.insert(0, x.getDato() + " "); // los demás se ponen al inicio para conservar el orden desde la raíz
             }
         }
 
@@ -626,7 +661,33 @@ public class Arboles {
     }
 
 
+    private static void mostrarSiArbolPerfecto(Nodo raiz) {
+        int verificar = 1;
+        // valores para verificar:
+        /* 0 = el arbol está vacío
+           1 = el  arbol existe con por lo menos 1 nodo
+        */
 
+        if (raiz == null) {
+            JOptionPane.showMessageDialog(null, "El árbol está vacío.");
+            verificar = 0;
+        }
+
+        if (verificar == 1) { // si sí hay nodos en el arbol
+            int altura = calcularAltura(raiz);
+            int cantidadHojas = (int) Math.pow(2, altura); // segun la teoria de BST, un arbol es perfecto si 
+                                                            // hojas = 2^altura
+
+            int[] hojasContadas = new int[1]; // se usa un arreglo para poder pasarlo por referencia
+            contarHojas(raiz, hojasContadas);
+
+            if (hojasContadas[0] == cantidadHojas) {
+                JOptionPane.showMessageDialog(null, "Arbol perfecto");
+            } else {
+                JOptionPane.showMessageDialog(null, "Arbol imperfecto");
+            }
+        }
+    }
 
 
 /*
