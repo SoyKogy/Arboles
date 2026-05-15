@@ -1,13 +1,19 @@
 import javax.swing.JOptionPane;
+/*
+Proyecto arboles
 
+Creador por Thomas Madrigal
+
+Hecho con ayuda de Gemini
+*/
 public class Arboles {
     public static void main(String[] args) throws Exception {
         
-        char[] cadena = obtenerCadena(); // aquí se captura la cadena base con la que nacerá el árbol
+        char[] cadena = obtenerCadena(); 
 
         Nodo raiz = new Nodo(cadena[0]); // el primer carácter siempre se toma como raíz inicial
-        crearArbol(raiz, cadena); // los demás caracteres se insertan respetando el orden de un ABB
-        
+        crearArbol(raiz, cadena); 
+
         int opcion = 0;
         do {
             opcion = Menu(); // se vuelve a pedir opción hasta que el usuario decida salir
@@ -280,7 +286,6 @@ public class Arboles {
         Nodo x = raiz;
 
         // posorden:   izquierda -> derecha -> raiz
-        // este recorrido suele ser útil cuando se quiere "cerrar" un subárbol antes de procesar su raíz
 
         if (x.getLigaIzq() != null) {
             recorrerPosorden(x.getLigaIzq(), posorden);
@@ -289,7 +294,7 @@ public class Arboles {
             recorrerPosorden(x.getLigaDer(), posorden);
         }
 
-        posorden.append(x.getDato() + " "); // la raíz queda de última dentro de su propio subárbol
+        posorden.append(x.getDato() + " "); // la raíz queda de ultima
     }
 
     public static void insertarNodoDesdeMenu(Nodo raiz) {
@@ -364,7 +369,7 @@ public class Arboles {
                         recorrerPreorden(raiz, nuevaCadena);
                         JOptionPane.showMessageDialog(null, nuevaCadena);
                     } else {
-                        // este mensaje aclara la duda típica de "¿se dañó?" cuando en realidad se borró el último nodo
+                        // este mensaje aclara la duda "¿se dañó?" cuando en realidad se borró el último nodo
                         JOptionPane.showMessageDialog(null, "El árbol quedó vacío.");
                     }
                     
@@ -736,44 +741,4 @@ public class Arboles {
             }
         }
     }
-
-
-/*
-    public void Construir(char Vc[]) {
-
-        int i = 0;
-        while (i < Vc.length) {
-
-            if (true) {
-
-            }
-
-            AVL();
-
-            i++;
-        }
-    }
-    
-    private void AVL() {
-        
-        // factor de balance
-        FactorBalance();
-
-        int R = ValidarRotacion();
-
-
-        switch (R) {
-            case 1:     // R.D
-                
-                break;
-            case 2:     // R.I
-                break;
-            case 3:     // R.D.D
-                break;
-            case 4:     // R.D.I
-                break;
-        }
-    }
-
- */
     }
