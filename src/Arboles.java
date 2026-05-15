@@ -200,36 +200,40 @@ public class Arboles {
 
     public static Nodo eliminarNodo(Nodo raiz, char dato) {
         Nodo x = raiz;
+        Nodo nodoResultado = x;
+        // valores para nodoResultado:
+        /* null = la rama queda vacía en este punto
+           nodo = la rama conserva un nodo válido
+         */
 
         if (x == null) { 
-            return null; // caso base: se llegó a una rama vacía y no hay nada por borrar
-        }
-
-        if (dato < x.getDato()) {
-            // al reasignar la liga, se conserva cualquier cambio que ocurra más abajo en la recursión
-            x.setLigaIzq(eliminarNodo(x.getLigaIzq(), dato));
-        } else if (dato > x.getDato()) {
-            x.setLigaDer(eliminarNodo(x.getLigaDer(), dato));
+            nodoResultado = null; // caso base: se llegó a una rama vacía y no hay nada por borrar
         } else {
-            // si entró aquí, ya encontramos el nodo que sí coincide con el dato pedido
-            if (x.getLigaIzq() == null && x.getLigaDer() == null) {
-                return null; // caso 1: era hoja, así que simplemente desaparece
+            if (dato < x.getDato()) {
+                // al reasignar la liga, se conserva cualquier cambio que ocurra más abajo en la recursión
+                x.setLigaIzq(eliminarNodo(x.getLigaIzq(), dato));
+            } else if (dato > x.getDato()) {
+                x.setLigaDer(eliminarNodo(x.getLigaDer(), dato));
+            } else {
+                // si entró aquí, ya encontramos el nodo que sí coincide con el dato pedido
+                if (x.getLigaIzq() == null && x.getLigaDer() == null) {
+                    nodoResultado = null; // caso 1: era hoja, así que simplemente desaparece
+                } else if (x.getLigaIzq() == null) {
+                    nodoResultado = x.getLigaDer(); // caso 2: solo tiene hijo derecho, ese hijo sube a su lugar
+                } else if (x.getLigaDer() == null) {
+                    nodoResultado = x.getLigaIzq(); // caso 3: solo tiene hijo izquierdo
+                } else {
+                    // caso 4: tiene dos hijos.
+                    // se toma el menor del subárbol derecho (sucesor inorden) para no romper la propiedad del ABB
+                    Nodo sucesor = obtenerMenor(x.getLigaDer());
+                    x.setDato(sucesor.getDato()); // se copia solo el dato; no se mueve el nodo completo
+                    x.setLigaDer(eliminarNodo(x.getLigaDer(), sucesor.getDato())); // luego se elimina el duplicado que quedó en la derecha
+                    nodoResultado = x;
+                }
             }
-            if (x.getLigaIzq() == null) {
-                return x.getLigaDer(); // caso 2: solo tiene hijo derecho, ese hijo sube a su lugar
-            }
-            if (x.getLigaDer() == null) {
-                return x.getLigaIzq(); // caso 3: solo tiene hijo izquierdo
-            }
-
-            // caso 4: tiene dos hijos.
-            // se toma el menor del subárbol derecho (sucesor inorden) para no romper la propiedad del ABB
-            Nodo sucesor = obtenerMenor(x.getLigaDer());
-            x.setDato(sucesor.getDato()); // se copia solo el dato; no se mueve el nodo completo
-            x.setLigaDer(eliminarNodo(x.getLigaDer(), sucesor.getDato())); // luego se elimina el duplicado que quedó en la derecha
         }
 
-        return x;
+        return nodoResultado;
     }
 
     private static void recorrerInorden(Nodo raiz, StringBuilder inorden) {
@@ -384,6 +388,12 @@ public class Arboles {
 
     private static void contarHojas(Nodo raiz, int[] hojas) {
 
+        /*
+
+        IMPORTANTE: contarHojas ASUME que ya se creó una variable int[0]
+        para contar las hojas
+
+         */
         Nodo x = raiz;
         // recorrido completo del árbol: una hoja es un nodo sin hijo izquierdo ni derecho
         if (x.getLigaIzq() == null && x.getLigaDer() == null) {
@@ -401,6 +411,13 @@ public class Arboles {
 
     private static void contarPadres(Nodo raiz, int[] padres) {
 
+        /*
+
+        IMPORTANTE: contarHojas ASUME que ya se creó una variable int[0]
+        para contar las hojas
+
+         */
+
         Nodo x = raiz;
         // recorrido completo: aquí "padre" significa cualquier nodo que tenga al menos un hijo
         if (x.getLigaIzq() != null || x.getLigaDer() != null) {
@@ -417,81 +434,108 @@ public class Arboles {
 
     private static Nodo obtenerMenor(Nodo raiz) {
         Nodo x = raiz;
+        Nodo menor = x;
+        // valores para menor:
+        /* nodo = menor actual mientras se recorre
+           nodo mas a la izquierda = menor definitivo del subárbol
+         */
 
-        // en un ABB, el menor de cualquier subárbol siempre está en la rama más a la izquierda
-        while (x.getLigaIzq() != null) {
-            x = x.getLigaIzq();
+        // en un BST, el menor de cualquier subárbol siempre está en la rama más a la izquierda
+        while (menor.getLigaIzq() != null) {
+            menor = menor.getLigaIzq();
         }
 
-        return x;
+        return menor;
     }
 
     private static Nodo buscarNodo(Nodo raiz, char dato) {
         Nodo x = raiz;
+        Nodo nodoEncontrado = null;
+        // valores para nodoEncontrado:
+        /* null = el dato no se encontró
+           nodo = el dato sí se encontró
+         */
 
         if (x == null) {
-            return null; // no se encontró en esta ruta
-        }
-        if (dato == x.getDato()) {
-            return x; // caso encontrado
-        }
-        if (dato < x.getDato()) {
+            nodoEncontrado = null; // no se encontró en esta ruta
+        } else if (dato == x.getDato()) {
+            nodoEncontrado = x; // caso encontrado
+        } else if (dato < x.getDato()) {
             // si el dato buscado es menor, no tiene sentido revisar la derecha en un ABB
-            return buscarNodo(x.getLigaIzq(), dato);
+            nodoEncontrado = buscarNodo(x.getLigaIzq(), dato);
+        } else {
+            // y si es mayor, solo puede estar en la derecha
+            nodoEncontrado = buscarNodo(x.getLigaDer(), dato);
         }
 
-        // y si es mayor, solo puede estar en la derecha
-        return buscarNodo(x.getLigaDer(), dato);
+        return nodoEncontrado;
     }
 
     private static Nodo buscarPadre(Nodo raiz, char dato) {
         Nodo x = raiz;
+        Nodo padreEncontrado = null;
+        // valores para padreEncontrado:
+        /* null = no se encontró padre para ese dato
+           nodo = sí se encontró el padre del dato
+         */
 
         if (x == null) {
-            return null;
-        }
-        if ((x.getLigaIzq() != null && x.getLigaIzq().getDato() == dato)
+            padreEncontrado = null;
+        } else if ((x.getLigaIzq() != null && x.getLigaIzq().getDato() == dato)
             || (x.getLigaDer() != null && x.getLigaDer().getDato() == dato)) {
-            return x; // si uno de sus hijos coincide, entonces el actual es el padre buscado
-        }
-        if (dato < x.getDato()) {
-            return buscarPadre(x.getLigaIzq(), dato);
+            padreEncontrado = x; // si uno de sus hijos coincide, entonces el actual es el padre buscado
+        } else if (dato < x.getDato()) {
+            padreEncontrado = buscarPadre(x.getLigaIzq(), dato);
+        } else {
+            padreEncontrado = buscarPadre(x.getLigaDer(), dato);
         }
 
-        return buscarPadre(x.getLigaDer(), dato);
+        return padreEncontrado;
     }
 
     private static int buscarNivel(Nodo raiz, char dato, int nivelActual) {
         Nodo x = raiz;
+        int nivelEncontrado = -1;
+        // valores para nivelEncontrado:
+        /* -1 = el dato no se encontró
+           0 o mas = nivel del dato dentro del árbol
+         */
 
         if (x == null) {
-            return -1; // -1 significa "no encontrado", no un nivel válido
-        }
-        if (x.getDato() == dato) {
-            return nivelActual; // el nivel se va acumulando a medida que se baja desde la raíz
-        }
-        if (dato < x.getDato()) {
-            return buscarNivel(x.getLigaIzq(), dato, nivelActual + 1);
+            nivelEncontrado = -1; // según Gemini: una rama inexistente mide -1
+        } else if (x.getDato() == dato) {
+            nivelEncontrado = nivelActual; // el nivel se va acumulando a medida que se baja desde la raíz
+        } else if (dato < x.getDato()) {
+            nivelEncontrado = buscarNivel(x.getLigaIzq(), dato, nivelActual + 1);
+        } else {
+            nivelEncontrado = buscarNivel(x.getLigaDer(), dato, nivelActual + 1);
         }
 
-        return buscarNivel(x.getLigaDer(), dato, nivelActual + 1);
+        return nivelEncontrado;
     }
 
     private static int calcularAltura(Nodo raiz) {
         Nodo x = raiz;
+        int alturaCalculada = -1;
+        // valores para alturaCalculada:
+        /* -1 = rama inexistente
+           0 o mas = altura calculada del nodo o subárbol
+         */
 
         if (x == null) {
-            return -1; // convención útil: una rama inexistente mide -1, así una hoja termina midiendo 0
+            alturaCalculada = -1; // según Gemini: una rama inexistente mide -1, así una hoja termina midiendo 0
+        } else {
+            int alturaIzq = calcularAltura(x.getLigaIzq());
+            int alturaDer = calcularAltura(x.getLigaDer());
+
+            if (alturaIzq > alturaDer) {
+                alturaCalculada = alturaIzq + 1; // se suma 1 por el nodo actual
+            } else {
+                alturaCalculada = alturaDer + 1;
+            }
         }
 
-        int alturaIzq = calcularAltura(x.getLigaIzq());
-        int alturaDer = calcularAltura(x.getLigaDer());
-
-        if (alturaIzq > alturaDer) {
-            return alturaIzq + 1; // se suma 1 por el nodo actual
-        }
-
-        return alturaDer + 1;
+        return alturaCalculada;
     }
 
     private static void mostrarHermanoDeDato(Nodo raiz) {
@@ -554,6 +598,7 @@ public class Arboles {
     private static void mostrarPrimosHermanosDeDato(Nodo raiz) {
         String entrada = obtenerCaracter("Ingrese el dato del que quiere ver los primos hermanos:");
         char dato = entrada.charAt(0);
+        
         int puedeBuscarPrimos = 1;
         // valores para puedeBuscarPrimos:
         /* 0 = no se puede continuar la búsqueda de primos hermanos
@@ -634,26 +679,29 @@ public class Arboles {
 
     private static boolean construirAncestros(Nodo raiz, char dato, StringBuilder ancestros) {
         Nodo x = raiz;
+        boolean encontrado = false;
+        // valores para encontrado:
+        /* false = el dato no está en esta ruta
+           true = el dato sí está en esta ruta
+         */
 
         if (x == null) {
-            return false;
-        }
-        if (x.getDato() == dato) {
-            return true; // al encontrar el dato, empieza el retorno hacia arriba marcando la ruta correcta
-        }
-
-        boolean encontrado;
-        if (dato < x.getDato()) {
-            encontrado = construirAncestros(x.getLigaIzq(), dato, ancestros);
+            encontrado = false;
+        } else if (x.getDato() == dato) {
+            encontrado = true; // al encontrar el dato, empieza el retorno hacia arriba marcando la ruta correcta
         } else {
-            encontrado = construirAncestros(x.getLigaDer(), dato, ancestros);
-        }
-
-        if (encontrado) {
-            if (ancestros.length() == 0) {
-                ancestros.append(x.getDato()); // el primer ancestro agregado es el padre directo
+            if (dato < x.getDato()) {
+                encontrado = construirAncestros(x.getLigaIzq(), dato, ancestros);
             } else {
-                ancestros.insert(0, x.getDato() + " "); // los demás se ponen al inicio para conservar el orden desde la raíz
+                encontrado = construirAncestros(x.getLigaDer(), dato, ancestros);
+            }
+
+            if (encontrado) {
+                if (ancestros.length() == 0) {
+                    ancestros.append(x.getDato()); // el primer ancestro agregado es el padre directo
+                } else {
+                    ancestros.insert(0, x.getDato() + " "); // los demás se ponen al inicio para conservar el orden desde la raíz
+                }
             }
         }
 
