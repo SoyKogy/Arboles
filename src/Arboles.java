@@ -31,17 +31,32 @@ public class Arboles {
                     insertarNodoDesdeMenu(raiz);
                     break;
                 case 5:
-                    eliminarNodoDesdeMenu(raiz);
+                    raiz = eliminarNodoDesdeMenu(raiz);
                     break;
                 case 6:
                     int[] hojas = new int[1]; // convierto el int en un objeto para poder arrastrarlo entre recursiones
                     contarHojas(raiz, hojas);
-                    JOptionPane.showMessageDialog(null, "Cantidad de hojas:\n\n" + hojas);
+                    JOptionPane.showMessageDialog(null, "Cantidad de hojas:\n\n" + hojas[0]);
                     break;
                 case 7:
                     int[] padres = new int[1];
                     contarPadres(raiz, padres);
-                    JOptionPane.showMessageDialog(null, "Cantidad de padres:\n\n" + padres);
+                    JOptionPane.showMessageDialog(null, "Cantidad de padres:\n\n" + padres[0]);
+                    break;
+                case 9:
+                    mostrarHermanoDeDato(raiz);
+                    break;
+                case 10:
+                    mostrarNivelDeDato(raiz);
+                    break;
+                case 11:
+                    mostrarAlturaDeDato(raiz);
+                    break;
+                case 12:
+                    mostrarPrimosHermanosDeDato(raiz);
+                    break;
+                case 13:
+                    mostrarAncestrosDeDato(raiz);
                     break;
                 case 0:
                     break;
@@ -141,6 +156,36 @@ public class Arboles {
                 insertarNodo(x.getLigaIzq(), nodo);
             }
         }
+    }
+
+    public static Nodo eliminarNodo(Nodo raiz, char dato) {
+        Nodo x = raiz;
+
+        if (x == null) { 
+            return null;
+        }
+
+        if (dato < x.getDato()) {
+            x.setLigaIzq(eliminarNodo(x.getLigaIzq(), dato));
+        } else if (dato > x.getDato()) {
+            x.setLigaDer(eliminarNodo(x.getLigaDer(), dato));
+        } else {
+            if (x.getLigaIzq() == null && x.getLigaDer() == null) {
+                return null;
+            }
+            if (x.getLigaIzq() == null) {
+                return x.getLigaDer();
+            }
+            if (x.getLigaDer() == null) {
+                return x.getLigaIzq();
+            }
+
+            Nodo sucesor = obtenerMenor(x.getLigaDer());
+            x.setDato(sucesor.getDato());
+            x.setLigaDer(eliminarNodo(x.getLigaDer(), sucesor.getDato()));
+        }
+
+        return x;
     }
 
     private static void recorrerInorden(Nodo raiz, StringBuilder inorden) {
@@ -243,10 +288,50 @@ public class Arboles {
         
     }
 
-    public static void eliminarNodoDesdeMenu(Nodo raiz) {
+    public static Nodo eliminarNodoDesdeMenu(Nodo raiz) {
         
-        
-    
+        int encontrado;
+        do {
+            encontrado = 1;
+            // valores para encontrado:
+            /* 0 = caracter/nodo no encontrado / error en input
+               1 = melo para eliminar
+             */
+            StringBuilder cadena = new StringBuilder();
+            recorrerPreorden(raiz, cadena);
+
+            char caracter = pedirCaracter(
+                "Arbol actual (preorden):\n" + cadena
+                + "\nIngrese un carácter que se encuentre en el árbol.\n\nNo ingrese espacios ni puntos."
+            );
+
+            if (caracter == '\0') {
+                encontrado = 0;
+            }
+
+            if (encontrado == 1) {
+                if (buscarNodo(raiz, caracter) != null) {
+                    raiz = eliminarNodo(raiz, caracter);
+
+                    StringBuilder nuevaCadena = new StringBuilder();
+                    if (raiz != null) {
+                        recorrerPreorden(raiz, nuevaCadena);
+                        JOptionPane.showMessageDialog(null, nuevaCadena);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "El árbol quedó vacío.");
+                    }
+                    
+                } else {
+                    mostrarDatoNoEncontrado(caracter);
+                    encontrado = 0;
+                }
+            }
+
+            
+
+        } while (encontrado == 0 && raiz != null);
+
+        return raiz;
     }
 
 
@@ -285,6 +370,259 @@ public class Arboles {
         if (x.getLigaDer() != null) {
             contarPadres(x.getLigaDer(), padres);
         }
+    }
+
+    private static Nodo obtenerMenor(Nodo raiz) {
+        Nodo x = raiz;
+
+        while (x.getLigaIzq() != null) {
+            x = x.getLigaIzq();
+        }
+
+        return x;
+    }
+
+    private static Nodo buscarNodo(Nodo raiz, char dato) {
+        Nodo x = raiz;
+
+        if (x == null) {
+            return null;
+        }
+        if (dato == x.getDato()) {
+            return x;
+        }
+        if (dato < x.getDato()) {
+            return buscarNodo(x.getLigaIzq(), dato);
+        }
+
+        return buscarNodo(x.getLigaDer(), dato);
+    }
+
+    private static Nodo buscarPadre(Nodo raiz, char dato) {
+        Nodo x = raiz;
+
+        if (x == null) {
+            return null;
+        }
+        if ((x.getLigaIzq() != null && x.getLigaIzq().getDato() == dato)
+            || (x.getLigaDer() != null && x.getLigaDer().getDato() == dato)) {
+            return x;
+        }
+        if (dato < x.getDato()) {
+            return buscarPadre(x.getLigaIzq(), dato);
+        }
+
+        return buscarPadre(x.getLigaDer(), dato);
+    }
+
+    private static int buscarNivel(Nodo raiz, char dato, int nivelActual) {
+        Nodo x = raiz;
+
+        if (x == null) {
+            return -1;
+        }
+        if (x.getDato() == dato) {
+            return nivelActual;
+        }
+        if (dato < x.getDato()) {
+            return buscarNivel(x.getLigaIzq(), dato, nivelActual + 1);
+        }
+
+        return buscarNivel(x.getLigaDer(), dato, nivelActual + 1);
+    }
+
+    private static int calcularAltura(Nodo raiz) {
+        Nodo x = raiz;
+
+        if (x == null) {
+            return -1;
+        }
+
+        int alturaIzq = calcularAltura(x.getLigaIzq());
+        int alturaDer = calcularAltura(x.getLigaDer());
+
+        if (alturaIzq > alturaDer) {
+            return alturaIzq + 1;
+        }
+
+        return alturaDer + 1;
+    }
+
+    private static char pedirCaracter(String mensaje) {
+        String entrada = JOptionPane.showInputDialog(mensaje);
+
+        if (entrada == null) {
+            JOptionPane.showMessageDialog(null, "Operación cancelada.");
+            return '\0';
+        }
+
+        entrada = entrada.trim().toUpperCase();
+
+        if (entrada.length() != 1) {
+            JOptionPane.showMessageDialog(null, "Error: Solo puede ingresar 1 carácter.");
+            return '\0';
+        }
+
+        return entrada.charAt(0);
+    }
+
+    private static void mostrarDatoNoEncontrado(char dato) {
+        JOptionPane.showMessageDialog(null, "Error: \"" + dato + "\" no se encuentra en el árbol.");
+    }
+
+    private static void mostrarHermanoDeDato(Nodo raiz) {
+        char dato = pedirCaracter("Ingrese el dato del que quiere ver el hermano:");
+
+        if (dato == '\0') {
+            return;
+        }
+
+        Nodo padre = buscarPadre(raiz, dato);
+        if (padre == null) {
+            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene hermano.");
+            return;
+        }
+
+        Nodo hermano = null;
+        if (padre.getLigaIzq() != null && padre.getLigaIzq().getDato() == dato) {
+            hermano = padre.getLigaDer();
+        } else if (padre.getLigaDer() != null && padre.getLigaDer().getDato() == dato) {
+            hermano = padre.getLigaIzq();
+        }
+
+        if (hermano == null) {
+            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene hermano.");
+        } else {
+            JOptionPane.showMessageDialog(null, "El hermano de \"" + dato + "\" es \"" + hermano.getDato() + "\".");
+        }
+    }
+
+    private static void mostrarNivelDeDato(Nodo raiz) {
+        char dato = pedirCaracter("Ingrese el dato del que quiere ver el nivel:");
+
+        if (dato == '\0') {
+            return;
+        }
+
+        int nivel = buscarNivel(raiz, dato, 0);
+        if (nivel == -1) {
+            mostrarDatoNoEncontrado(dato);
+        } else {
+            JOptionPane.showMessageDialog(null, "El nivel de \"" + dato + "\" es " + nivel + ".");
+        }
+    }
+
+    private static void mostrarAlturaDeDato(Nodo raiz) {
+        char dato = pedirCaracter("Ingrese el dato del que quiere ver la altura:");
+
+        if (dato == '\0') {
+            return;
+        }
+
+        Nodo nodo = buscarNodo(raiz, dato);
+        if (nodo == null) {
+            mostrarDatoNoEncontrado(dato);
+        } else {
+            JOptionPane.showMessageDialog(null, "La altura de \"" + dato + "\" es " + calcularAltura(nodo) + ".");
+        }
+    }
+
+    private static void mostrarPrimosHermanosDeDato(Nodo raiz) {
+        char dato = pedirCaracter("Ingrese el dato del que quiere ver los primos hermanos:");
+
+        if (dato == '\0') {
+            return;
+        }
+
+        Nodo nodo = buscarNodo(raiz, dato);
+        Nodo padre = buscarPadre(raiz, dato);
+        Nodo abuelo = padre == null ? null : buscarPadre(raiz, padre.getDato());
+
+        if (nodo == null) {
+            mostrarDatoNoEncontrado(dato);
+            return;
+        }
+        if (padre == null || abuelo == null) {
+            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene primos hermanos.");
+            return;
+        }
+
+        StringBuilder primos = new StringBuilder();
+        recolectarPrimosHermanos(abuelo, padre, primos);
+
+        if (primos.length() == 0) {
+            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene primos hermanos.");
+        } else {
+            JOptionPane.showMessageDialog(null, "Primos hermanos de \"" + dato + "\":\n" + primos);
+        }
+    }
+
+    private static void recolectarPrimosHermanos(Nodo abuelo, Nodo padre, StringBuilder primos) {
+        if (abuelo.getLigaIzq() != null && abuelo.getLigaIzq() != padre) {
+            agregarHijos(abuelo.getLigaIzq(), primos);
+        }
+        if (abuelo.getLigaDer() != null && abuelo.getLigaDer() != padre) {
+            agregarHijos(abuelo.getLigaDer(), primos);
+        }
+    }
+
+    private static void agregarHijos(Nodo raiz, StringBuilder datos) {
+        if (raiz.getLigaIzq() != null) {
+            datos.append(raiz.getLigaIzq().getDato()).append(' ');
+        }
+        if (raiz.getLigaDer() != null) {
+            datos.append(raiz.getLigaDer().getDato()).append(' ');
+        }
+    }
+
+    private static void mostrarAncestrosDeDato(Nodo raiz) {
+        char dato = pedirCaracter("Ingrese el dato del que quiere ver los ancestros:");
+
+        if (dato == '\0') {
+            return;
+        }
+
+        if (buscarNodo(raiz, dato) == null) {
+            mostrarDatoNoEncontrado(dato);
+            return;
+        }
+
+        StringBuilder ancestros = new StringBuilder();
+        construirAncestros(raiz, dato, ancestros);
+
+        if (ancestros.length() == 0) {
+            JOptionPane.showMessageDialog(null, "El dato \"" + dato + "\" no tiene ancestros.");
+        } else {
+            JOptionPane.showMessageDialog(null, "Ancestros de \"" + dato + "\":\n" + ancestros);
+        }
+    }
+
+    private static boolean construirAncestros(Nodo raiz, char dato, StringBuilder ancestros) {
+        Nodo x = raiz;
+
+        if (x == null) {
+            return false;
+        }
+        if (x.getDato() == dato) {
+            return true;
+        }
+
+        boolean encontrado;
+        if (dato < x.getDato()) {
+            encontrado = construirAncestros(x.getLigaIzq(), dato, ancestros);
+        } else {
+            encontrado = construirAncestros(x.getLigaDer(), dato, ancestros);
+        }
+
+        if (encontrado) {
+            if (ancestros.length() == 0) {
+                ancestros.append(x.getDato());
+            } else {
+                ancestros.insert(0, x.getDato() + " ");
+            }
+        }
+
+        return encontrado;
     }
 
 
